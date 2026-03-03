@@ -183,7 +183,7 @@ const history = await fetch(SUBGRAPH_URL, { method: "POST", body: JSON.stringify
       <h2>Network and endpoints</h2>
       <ul>
         <li>Network: <strong>Sepolia</strong> (chainId <code>11155111</code>)</li>
-        <li>RPC in use: <code>https://sepolia.infura.io/v3/552b3927bbd14d158a079e9d4df2a8ca</code></li>
+        <li>RPC in use: <code>https://sepolia.infura.io/v3/0000000000000000000000000</code></li>
         <li>Subgraph Studio endpoint: <code>https://api.studio.thegraph.com/query/1742046/bert-sepolia/v0.0.1</code></li>
       </ul>
 
