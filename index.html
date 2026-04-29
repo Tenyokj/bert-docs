@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BERT Protocol Docs</title>
+    <title>BERT V2 Docs</title>
     <meta
       name="description"
-      content="BERT protocol documentation: architecture, contracts, Sepolia deployment, operations, and integration guides."
+      content="BERT V2 protocol documentation: architecture, upgraded contracts, staged grant flow, Sepolia deployment, operations, and integration guides."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,18 +17,10 @@
     <div class="layout">
       <aside class="sidebar">
         <div class="brand">
-          <div>
-            <div class="brand-title">BERT docs</div>
-            <div class="brand-subtitle">Protocol reference</div>
-          </div>
+          <img class="brand-logo" src="./assets/banner.png" alt="BERT V2 logo" />
         </div>
 
         <nav id="nav" class="nav"></nav>
-
-        <div class="sidebar-footer">
-          <a href="https://github.com/Tenyokj/bert-core" target="_blank" rel="noreferrer">Core repo</a>
-          <a href="https://thegraph.com/studio/subgraph/bert-sepolia" target="_blank" rel="noreferrer">Subgraph</a>
-        </div>
       </aside>
 
       <main class="content">
@@ -36,8 +28,25 @@
           <div class="search-wrap">
             <input id="searchInput" type="search" placeholder="Search docs..." aria-label="Search docs" />
           </div>
-          <a class="top-link" href="https://bertdao.vercel.app" target="_blank" rel="noreferrer">Main site</a>
-          <a class="top-link" href="https://tenyokj.github.io/web3-studio/" target="_blank" rel="noreferrer">Web3 Studio</a>
+          <div class="top-actions">
+            <a class="icon-link" href="https://bertdao.vercel.app" target="_blank" rel="noreferrer" aria-label="Main site" title="Main site">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 7v10a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1V10l8-7z"/></svg>
+            </a>
+            <a class="icon-link" href="https://github.com/Tenyokj/bert-core" target="_blank" rel="noreferrer" aria-label="Core repo" title="Core repo">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.2c-3.34.73-4.04-1.41-4.04-1.41-.55-1.38-1.33-1.75-1.33-1.75-1.09-.73.08-.72.08-.72 1.2.09 1.84 1.23 1.84 1.23 1.08 1.83 2.82 1.3 3.5.99.11-.77.42-1.3.76-1.6-2.67-.3-5.47-1.32-5.47-5.9 0-1.3.47-2.36 1.23-3.19-.12-.31-.53-1.56.12-3.24 0 0 1.01-.32 3.3 1.22a11.6 11.6 0 0 1 6 0c2.28-1.54 3.29-1.22 3.29-1.22.65 1.68.24 2.93.12 3.24.77.83 1.23 1.89 1.23 3.19 0 4.59-2.81 5.59-5.49 5.88.43.37.82 1.1.82 2.23v3.31c0 .32.22.69.83.57A12 12 0 0 0 12 .5z"/></svg>
+            </a>
+            <a class="icon-link" href="https://thegraph.com/studio/subgraph/bert-sepolia-v2" target="_blank" rel="noreferrer" aria-label="Subgraph" title="Subgraph">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.6 2.1a2.7 2.7 0 1 1 2.8 2.7v3.1a5.9 5.9 0 0 1 3.9 5.5 6 6 0 1 1-12 0 6 6 0 0 1 5.4-5.96V4.8A2.7 2.7 0 0 1 11.6 2.1Zm.4 8a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6Zm6.6 8.1a2.1 2.1 0 1 1 0 4.2 2.1 2.1 0 0 1 0-4.2Z"/></svg>
+            </a>
+            <button id="themeToggle" class="theme-toggle" type="button" aria-label="Switch to light theme" title="Switch to light theme">
+              <span class="theme-icon theme-icon-sun" aria-hidden="true">
+                <svg viewBox="0 0 512 512"><path d="M256 144a112 112 0 1 0 0 224 112 112 0 1 0 0-224zm0-144c13.3 0 24 10.7 24 24V72c0 13.3-10.7 24-24 24s-24-10.7-24-24V24c0-13.3 10.7-24 24-24zm0 416c13.3 0 24 10.7 24 24v48c0 13.3-10.7 24-24 24s-24-10.7-24-24V440c0-13.3 10.7-24 24-24zM72 232c13.3 0 24 10.7 24 24s-10.7 24-24 24H24c-13.3 0-24-10.7-24-24s10.7-24 24-24H72zm416 0c13.3 0 24 10.7 24 24s-10.7 24-24 24H440c-13.3 0-24-10.7-24-24s10.7-24 24-24h48zM99 99c9.4-9.4 24.6-9.4 33.9 0l33.9 33.9c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0L99 132.9C89.6 123.6 89.6 108.4 99 99zm246.2 246.2c9.4-9.4 24.6-9.4 33.9 0L413 379.1c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-33.9-33.9c-9.4-9.4-9.4-24.6 0-33.9zM413 99c9.4 9.4 9.4 24.6 0 33.9l-33.9 33.9c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9L379.1 99c9.4-9.4 24.6-9.4 33.9 0zM166.8 345.2c9.4 9.4 9.4 24.6 0 33.9L132.9 413c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l33.9-33.9c9.4-9.4 24.6-9.4 33.9 0z"/></svg>
+              </span>
+              <span class="theme-icon theme-icon-moon" aria-hidden="true">
+                <svg viewBox="0 0 384 512"><path d="M223.5 32c-123.5 0-223.5 100-223.5 223.5S100 479 223.5 479c66.3 0 125.9-28.9 166.9-74.8 5.6-6.2 .8-16.1-7.5-15.4-10.8 .9-21.8 1.4-32.9 1.4-123.5 0-223.5-100-223.5-223.5 0-54.8 19.7-105 52.5-143.8 5-5.9 .7-14.8-7-14.8-1.4 0-2.8 0-4.2 0z"/></svg>
+              </span>
+            </button>
+          </div>
         </header>
 
         <article id="doc" class="doc"></article>

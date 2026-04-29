@@ -2,43 +2,92 @@ window.BERT_DOCS = [
   {
     slug: "overview",
     group: "Start",
-    title: "Overview",
-    summary: "What BERT is, what problems it solves, and what is in scope.",
+    title: "BERT V2 Overview",
+    summary: "What BERT V2 is, what changed, and which modules now define the live protocol.",
     content: `
-      <h1>BERT Protocol Documentation</h1>
-      <p class="lead">BERT is an upgradeable DAO voting and grant protocol. It turns proposals into funded outcomes through deterministic state transitions, stake-based voting rounds, and controlled treasury distribution.</p>
+      <h1>BERT V2 Documentation</h1>
+      <p class="lead">BERT V2 is the current on-chain proposal, voting, and staged grant execution protocol. It replaces the older single-release grant model with author stake at idea creation, milestone-based payouts, stricter validation, and storage-safe upgrade discipline.</p>
 
       <div>
-        <span class="badge">Upgradeable</span>
-        <span class="badge">Role-gated</span>
-        <span class="badge">On-chain execution</span>
-        <span class="badge">The Graph indexed</span>
+        <span class="badge">BERT V2</span>
+        <span class="badge">5000 BTK entry stake</span>
+        <span class="badge">30 / 40 / 30 release rail</span>
+        <span class="badge">Upgradeable proxies</span>
+        <span class="badge">Subgraph indexed</span>
       </div>
 
-      <h2>Core goals</h2>
+      <h2>What BERT V2 solves</h2>
       <ul>
-        <li>Move from idea submission to funding in one coherent protocol surface.</li>
-        <li>Keep decision logic auditable by making critical transitions on-chain.</li>
-        <li>Support long-term evolution using proxy upgrades without storage corruption.</li>
-        <li>Reward quality participation through reputation and voter progression.</li>
+        <li>Reduces low-commitment idea spam by requiring a real BTK stake at submission.</li>
+        <li>Replaces blind full grant release with staged execution tied to proof and validator review.</li>
+        <li>Improves operational safety by documenting storage-layout constraints for upgradeable contracts.</li>
+        <li>Keeps live state authoritative on-chain while using The Graph for history, lists, and analytics.</li>
       </ul>
 
-      <h2>Protocol modules</h2>
+      <h2>Core modules in the live V2 stack</h2>
       <ul>
-        <li><strong>IdeaRegistryUpgradeable</strong>: proposal records, statuses, reviews, low-quality marks.</li>
-        <li><strong>VotingSystemUpgradeable</strong>: rounds, voting windows, winner resolution.</li>
-        <li><strong>FundingPoolUpgradeable</strong>: stake accounting and treasury balance management.</li>
-        <li><strong>GrantManagerUpgradeable</strong>: allocation and distribution logic after wins.</li>
-        <li><strong>GovernanceTokenUpgradeable (BTK)</strong>: protocol token used in flow mechanics.</li>
-        <li><strong>ReputationSystemUpgradeable</strong>: author reputation updates on outcomes.</li>
-        <li><strong>VoterProgressionUpgradeable</strong>: progression counters and role unlock criteria.</li>
-        <li><strong>RolesRegistryUpgradeable</strong>: central role authority and system role wiring.</li>
-        <li><strong>BRTFaucet</strong>: test token distribution for onboarding and QA.</li>
+        <li><strong>IdeaRegistryUpgradeable</strong>: canonical idea records, statuses, reviews, author stake entry checks.</li>
+        <li><strong>VotingSystemUpgradeable</strong>: round creation, voting windows, min stake, winner selection.</li>
+        <li><strong>FundingPoolUpgradeable</strong>: vote stake accounting, author stake locking, treasury balance, reserve logic.</li>
+        <li><strong>GrantManagerUpgradeable</strong>: initial claim, milestone proof review, staged payout execution.</li>
+        <li><strong>GovernanceTokenUpgradeable (BTK)</strong>: ERC-20 used for submission stake and vote stake.</li>
+        <li><strong>ReputationSystemUpgradeable</strong>: outcome-based reputation lifecycle.</li>
+        <li><strong>VoterProgressionUpgradeable</strong>: winning-vote progression and role unlock counters.</li>
+        <li><strong>RolesRegistryUpgradeable</strong>: central source of functional and system roles.</li>
+        <li><strong>BRTFaucet</strong>: testnet BTK onboarding for demos and QA.</li>
       </ul>
 
       <div class="callout info">
-        <strong>Production note:</strong> docs describe current protocol behavior for the Sepolia deployment listed below.
-        Always validate addresses and role wiring before building new integrations.
+        <strong>Scope note:</strong> this site documents the current <strong>BERT V2</strong> behavior and the Sepolia deployment that the frontend and subgraph are currently aligned to.
+      </div>
+    `,
+  },
+  {
+    slug: "v2-changes",
+    group: "Start",
+    title: "What Changed in BERT V2",
+    summary: "Exact protocol-level differences between the older flow and the live V2 mechanics.",
+    content: `
+      <h1>What Changed in BERT V2</h1>
+      <p class="lead">BERT V2 is not a cosmetic release. It changes idea entry economics, grant execution, contract storage layout, frontend preflight logic, and subgraph coverage.</p>
+
+      <h2>Headline changes</h2>
+      <table>
+        <thead>
+          <tr><th>Area</th><th>Before</th><th>BERT V2</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Idea creation</td><td>Metadata-only submission</td><td>Requires <code>authorMinStake</code>, currently <strong>5000 BTK</strong></td></tr>
+          <tr><td>Grant release</td><td>Single post-win release path</td><td><strong>30% / 40% / 30%</strong> staged payout</td></tr>
+          <tr><td>Milestone validation</td><td>Not part of the release rail</td><td>Explicit proof submission and reviewer approvals per stage</td></tr>
+          <tr><td>Idea lifecycle</td><td>Ended at funded/completed in simpler flow</td><td>Adds <code>InProcess</code> stage between <code>Funded</code> and <code>Completed</code></td></tr>
+          <tr><td>FundingPool</td><td>Vote stake accounting only</td><td>Also stores <code>authorStakeByIdea</code> and author slashing path</td></tr>
+          <tr><td>Frontend writes</td><td>Basic write prompts</td><td>Allowance, stake, role, and status preflight checks before write</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Upgraded contracts in V2</h2>
+      <ul>
+        <li><strong>IdeaRegistryUpgradeable</strong>: new author stake flow, funding pool wiring, stricter status transitions, stage-aware completion path.</li>
+        <li><strong>FundingPoolUpgradeable</strong>: author stake storage and author-stake treasury flows.</li>
+        <li><strong>GrantManagerUpgradeable</strong>: milestone proof submission, reviewer approvals, staged release accounting.</li>
+        <li><strong>Frontend ABI layer</strong>: patched ABI surface for new V2 functions and structs.</li>
+        <li><strong>Subgraph schema + mappings</strong>: extended for V2 read models.</li>
+      </ul>
+
+      <h2>Live numeric rules in V2</h2>
+      <ul>
+        <li>Idea submission minimum: <strong>5000 BTK</strong></li>
+        <li>Initial payout: <strong>30%</strong> after win and author claim</li>
+        <li>Stage 1 payout: <strong>40%</strong> after validators confirm real execution progress</li>
+        <li>Stage 2 payout: <strong>30%</strong> after validators confirm launch / production readiness</li>
+        <li>Stage 1 reviewer threshold: <strong>3 approvals out of 5 reviewers</strong></li>
+        <li>Stage 2 reviewer threshold: <strong>2 approvals out of 3 reviewers</strong></li>
+        <li>Rejected proof cooldown: <strong>48 hours</strong> before re-submission</li>
+      </ul>
+
+      <div class="callout warning">
+        <strong>Migration warning:</strong> any integration, docs page, or frontend component that still assumes “winning idea = full grant released immediately” is outdated for BERT V2.
       </div>
     `,
   },
@@ -46,110 +95,412 @@ window.BERT_DOCS = [
     slug: "architecture",
     group: "Protocol",
     title: "Architecture",
-    summary: "How contracts interact and what data paths are authoritative.",
+    summary: "Authoritative data paths, cross-contract calls, and why BERT V2 keeps state narrowly owned.",
     content: `
-      <h1>Architecture</h1>
-      <p class="lead">BERT is a modular architecture where each contract owns a narrow domain. Cross-contract writes are explicit and role-restricted to prevent hidden state authority.</p>
+      <h1>BERT V2 Architecture</h1>
+      <p class="lead">BERT V2 is a modular proxy-based architecture. Each core contract owns a narrow domain and cross-contract writes are explicit, role-gated, and expected to be auditable.</p>
 
       <h2>Data authority model</h2>
       <ul>
-        <li><strong>Live state:</strong> direct contract reads from RPC (viem/wagmi).</li>
-        <li><strong>History and analytics:</strong> indexed event projections in The Graph.</li>
-        <li><strong>Policy state:</strong> role registry + admin-controlled setters + pause controls.</li>
+        <li><strong>Authoritative live state:</strong> direct RPC reads from deployed proxies.</li>
+        <li><strong>History, list pages, and analytics:</strong> The Graph projections.</li>
+        <li><strong>Policy state:</strong> admin setters, pause state, and role registry wiring.</li>
       </ul>
 
-      <h2>High-level flow</h2>
+      <h2>High-level cross-contract graph</h2>
+      <ul>
+        <li><strong>IdeaRegistry</strong> calls into <strong>FundingPool</strong> for author stake locking on <code>createIdea</code>.</li>
+        <li><strong>VotingSystem</strong> calls <strong>FundingPool</strong> for vote stake deposits and updates <strong>IdeaRegistry</strong> statuses.</li>
+        <li><strong>GrantManager</strong> reads winner state from <strong>VotingSystem</strong>, reads idea author/status from <strong>IdeaRegistry</strong>, and executes staged payouts from <strong>FundingPool</strong>.</li>
+        <li><strong>ReputationSystem</strong> and <strong>VoterProgression</strong> are update targets for outcome-based behavior and role progression.</li>
+      </ul>
+
+      <h2>Frontend read model</h2>
       <ol>
-        <li>User submits idea in <code>IdeaRegistry</code> with initial status <code>Pending</code>.</li>
-        <li>Anyone starts round in <code>VotingSystem</code> when idea threshold is met.</li>
-        <li>Ideas in the round move to <code>Voting</code> status.</li>
-        <li>Participants vote with BTK stake (deposited via <code>FundingPool</code>).</li>
-        <li>Round ends; winner is selected and statuses are finalized.</li>
-        <li>Reputation and progression updates are applied according to outcome.</li>
-        <li>Grant flow can allocate from pool and move idea toward funded/completed lifecycle.</li>
+        <li>Use direct RPC for current eligibility, allowance, role, stake, and status checks.</li>
+        <li>Use subgraph for large historical lists, page-level aggregation, and resilient fallback when older read paths are unavailable.</li>
+        <li>Patch ABI layer centrally rather than scattering hand-written fragments across components.</li>
       </ol>
 
-      <h2>Operational control planes</h2>
+      <pre><code>// Recommended V2 UI strategy
+// 1) authoritative eligibility from RPC
+const payout = await grantManager.read.getGrantPayout([roundId])
+const status = await ideaRegistry.read.getStatus([ideaId])
+
+// 2) page history from subgraph
+const votes = await fetchAllVotesByIdeaFromSubgraph(String(ideaId))</code></pre>
+
+      <h2>Why the narrow ownership matters</h2>
       <ul>
-        <li><strong>Pause plane:</strong> emergency stops for critical write functions.</li>
-        <li><strong>Upgrade plane:</strong> per-proxy ProxyAdmin ownership controls implementation upgrades.</li>
-        <li><strong>Role plane:</strong> system and functional roles for guarded calls.</li>
+        <li>Storage layout changes become easier to reason about per module.</li>
+        <li>Incidents can be isolated by pausing only affected write surfaces.</li>
+        <li>Frontend teams can map business rules to one clear source of truth per feature.</li>
       </ul>
-
-      <pre><code>// Example: frontend data strategy
-// 1) Read current status directly from RPC
-const status = await ideaRegistry.getStatus(ideaId)
-
-// 2) Read historical votes/reviews via subgraph query
-const history = await fetch(SUBGRAPH_URL, { method: "POST", body: JSON.stringify({ query }) })</code></pre>
     `,
   },
   {
     slug: "contract-reference",
     group: "Protocol",
     title: "Contract Reference",
-    summary: "Key business functions and responsibilities by contract.",
+    summary: "V2 business behavior and critical functions for each on-chain module.",
     content: `
-      <h1>Contract Reference</h1>
-      <p class="lead">This section focuses on high-impact business behavior, not only ABI-level signatures.</p>
+      <h1>BERT V2 Contract Reference</h1>
+      <p class="lead">This section documents what each contract owns in BERT V2 and which functions matter most for protocol behavior and integrations.</p>
 
       <h2>RolesRegistryUpgradeable</h2>
       <ul>
-        <li>Central role source for protocol and system modules.</li>
-        <li>Used by other contracts through RolesAware pattern.</li>
-        <li>Critical for upgrade/admin/operator access boundaries.</li>
+        <li>Canonical source of admin, functional, and system roles.</li>
+        <li>Used through the RolesAware pattern by most core contracts.</li>
+        <li>Critical for upgrade safety, write permissions, and inter-contract trust.</li>
       </ul>
 
       <h2>IdeaRegistryUpgradeable</h2>
       <ul>
-        <li>Stores proposal metadata and canonical proposal status.</li>
-        <li>Handles review submission and low-quality marking guards.</li>
-        <li>Supports author completion marker when idea reaches funded stage.</li>
+        <li>Stores canonical idea metadata and lifecycle status.</li>
+        <li>V2 <code>createIdea(title, description, link, amount)</code> requires BTK stake and FundingPool wiring.</li>
+        <li>Exposes <code>authorMinStake()</code> and <code>fundingPool()</code> for V2 clients.</li>
+        <li>Supports review and low-quality marking guards while idea is in <code>Voting</code>.</li>
+        <li>V2 lifecycle: <code>Pending → Voting → WonVoting/Rejected → Funded → InProcess → Completed</code>.</li>
       </ul>
 
       <h2>VotingSystemUpgradeable</h2>
       <ul>
-        <li>Creates rounds from pending ideas based on <code>IDEAS_PER_ROUND</code>.</li>
-        <li>Enforces window rules and one-vote-per-address-per-round constraints.</li>
-        <li>Tracks round totals and chooses winner by highest staked votes.</li>
-        <li>On round end, updates idea statuses and triggers reputation/progression hooks.</li>
+        <li>Owns round creation, vote window timing, min stake, and winner selection.</li>
+        <li>Maintains <code>currentRoundId</code>, <code>lastUsedIdeaId</code>, and per-round totals.</li>
+        <li>Enforces one vote per wallet per round.</li>
+        <li>Transitions selected ideas into <code>Voting</code> and finalizes winner on end.</li>
       </ul>
 
       <h2>FundingPoolUpgradeable</h2>
       <ul>
-        <li>Receives staking deposits for votes.</li>
-        <li>Maintains pool balance and protocol reserve accounting.</li>
-        <li>Supports admin sync and safe reconciliation controls.</li>
+        <li>Stores vote stake and pool accounting.</li>
+        <li>V2 adds <code>authorStakeByIdea(ideaId)</code>.</li>
+        <li>Receives author stake through <code>depositAuthorStakeFrom</code> path.</li>
+        <li>Can slash losing/invalid author stake to reserve where policy requires it.</li>
+        <li>Still owns <code>totalPoolBalance</code>, <code>protocolReserve</code>, distribution records, and reconciliation path <code>syncBalance()</code>.</li>
       </ul>
 
       <h2>GrantManagerUpgradeable</h2>
       <ul>
-        <li>Executes payout and distribution logic after idea wins.</li>
-        <li>Owns author/protocol share controls through admin setter policy.</li>
-        <li>Bridge between voting outcomes and treasury execution.</li>
+        <li>Owns initial author claim and staged milestone releases.</li>
+        <li>Exposes V2 read model: <code>getGrantPayout(roundId)</code> and <code>getMilestoneRequest(roundId, stage)</code>.</li>
+        <li>Exposes V2 write model: <code>submitMilestoneProof</code> and <code>reviewMilestoneProof</code>.</li>
+        <li>Moves idea status from <code>Funded</code> to <code>InProcess</code> and later to <code>Completed</code> through validated execution flow.</li>
       </ul>
 
       <h2>GovernanceTokenUpgradeable (BTK)</h2>
       <ul>
-        <li>ERC-20 with protocol-specific minting controls and minter roles.</li>
-        <li>Used for staking, pool deposits, and voting participation economics.</li>
+        <li>BTK is the staking token for idea entry and vote participation.</li>
+        <li>Used in wallet balance checks, allowance checks, and pool deposits.</li>
+        <li>BTK is <strong>not</strong> the gas token. Gas remains native Sepolia ETH.</li>
       </ul>
 
-      <h2>ReputationSystemUpgradeable & VoterProgressionUpgradeable</h2>
+      <h2>ReputationSystemUpgradeable</h2>
       <ul>
-        <li>Reputation adjusts based on win/loss outcomes.</li>
-        <li>Progression tracks successful participation and role unlock metrics.</li>
+        <li>Tracks reputation initialization and win/loss effects.</li>
+        <li>Legacy and V2 flows both require correct system role wiring for author initialization.</li>
+      </ul>
+
+      <h2>VoterProgressionUpgradeable</h2>
+      <ul>
+        <li>Tracks successful voting on winning ideas.</li>
+        <li>Feeds reviewer/curator unlock criteria shown in the frontend.</li>
       </ul>
 
       <h2>BRTFaucet</h2>
       <ul>
-        <li>Distributes claim amount with cooldown for test usage.</li>
-        <li>Admin can set claim amount, cooldown, and pause faucet.</li>
+        <li>Provides BTK for testnet onboarding.</li>
+        <li>Useful for smoke testing V2 flows from fresh wallets.</li>
       </ul>
 
       <div class="callout warning">
-        <strong>Integration tip:</strong> build client-side pre-checks around status and role rules before sending transactions,
-        so users get readable errors instead of raw revert payloads.
+        <strong>Integration tip:</strong> for BERT V2, clients should always pre-check status, stake, allowance, and reviewer/author role context before attempting writes.
+      </div>
+    `,
+  },
+  {
+    slug: "idea-creation-v2",
+    group: "Protocol",
+    title: "Idea Creation in V2",
+    summary: "Exact BERT V2 author entry rules, stake path, and failure conditions for createIdea.",
+    content: `
+      <h1>Idea Creation in BERT V2</h1>
+      <p class="lead">Idea creation is no longer metadata-only. In BERT V2, every idea must be backed by a locked BTK stake before it can enter the round pipeline.</p>
+
+      <h2>Current live rule</h2>
+      <ul>
+        <li><strong>Minimum author stake:</strong> <code>5000 BTK</code></li>
+        <li><strong>Entry function:</strong> <code>IdeaRegistry.createIdea(title, description, link, amount)</code></li>
+        <li><strong>Initial status:</strong> <code>Pending</code></li>
+      </ul>
+
+      <h2>Execution sequence</h2>
+      <ol>
+        <li>Frontend reads <code>authorMinStake()</code>.</li>
+        <li>Wallet checks BTK balance and allowance to FundingPool.</li>
+        <li>Author approves BTK spend to FundingPool if needed.</li>
+        <li><code>createIdea</code> validates metadata, configured FundingPool, balance, allowance, and minimum amount.</li>
+        <li>IdeaRegistry calls FundingPool to lock the author stake for the new idea id.</li>
+        <li>Idea is stored with status <code>Pending</code>.</li>
+      </ol>
+
+      <h2>Why the stake exists</h2>
+      <ul>
+        <li>Prevents free spam submissions.</li>
+        <li>Aligns idea entry with economic commitment.</li>
+        <li>Creates a stronger quality signal before an idea can ever reach a round.</li>
+      </ul>
+
+      <h2>Frontend preflight checklist</h2>
+      <ul>
+        <li>Read <code>IdeaRegistry.authorMinStake()</code>.</li>
+        <li>Read <code>IdeaRegistry.fundingPool()</code> and ensure it matches configured FundingPool proxy address.</li>
+        <li>Read BTK <code>balanceOf(user)</code>.</li>
+        <li>Read BTK <code>allowance(user, fundingPool)</code>.</li>
+        <li>Block submit if <code>authorMinStake == 0</code> or FundingPool wiring is broken.</li>
+      </ul>
+
+      <h2>Important revert causes</h2>
+      <ul>
+        <li><code>FundingPoolNotConfigured</code></li>
+        <li><code>InsufficientStake</code></li>
+        <li><code>InsufficientTokenBalance</code></li>
+        <li><code>InsufficientAllowance</code></li>
+        <li><code>ExternalCallFailed("FundingPool", "depositAuthorStakeFrom")</code></li>
+      </ul>
+
+      <div class="callout info">
+        <strong>V2 UX rule:</strong> if the client can detect stake, allowance, or wiring failure before prompting the wallet, it should block early and show a readable reason instead of letting the user sign a revert.
+      </div>
+    `,
+  },
+  {
+    slug: "voting-round-flow",
+    group: "Protocol",
+    title: "Voting Round Flow",
+    summary: "How pending ideas enter rounds, how BTK voting works, and how winner finalization behaves in V2.",
+    content: `
+      <h1>Voting Round Flow</h1>
+      <p class="lead">Round mechanics remain stake-based in BERT V2, but they now feed a stricter downstream grant execution model.</p>
+
+      <h2>Round creation</h2>
+      <ul>
+        <li>Anyone can call <code>startVotingRound()</code> when enough pending ideas are available.</li>
+        <li>The threshold is controlled by <code>IDEAS_PER_ROUND</code>.</li>
+        <li>Ideas selected into the round move from <code>Pending</code> to <code>Voting</code>.</li>
+      </ul>
+
+      <h2>Vote mechanics</h2>
+      <ul>
+        <li>Votes are backed by BTK stake through FundingPool.</li>
+        <li><code>minStake</code> is enforced by VotingSystem.</li>
+        <li>One wallet can vote only once per round.</li>
+        <li>Frontend should check token balance, allowance, min stake, round window, and “hasVoted” before write.</li>
+      </ul>
+
+      <h2>Round end</h2>
+      <ol>
+        <li>Round can be ended once <code>endTime</code> has passed.</li>
+        <li>Highest total staked votes wins.</li>
+        <li>Winning idea moves to <code>WonVoting</code>.</li>
+        <li>Non-winning ideas move to <code>Rejected</code>.</li>
+        <li>Progression and reputation hooks can be applied from result state.</li>
+      </ol>
+
+      <h2>Why round data still matters in V2</h2>
+      <ul>
+        <li>The winner of the round is the only idea eligible for staged grant release.</li>
+        <li>GrantManager uses round result state to gate initial claim and milestone execution.</li>
+        <li>Frontend round pages should explain that “winning the round” no longer means “receive 100% immediately”.</li>
+      </ul>
+    `,
+  },
+  {
+    slug: "grant-flow-v2",
+    group: "Protocol",
+    title: "Grant Flow in V2",
+    summary: "The exact 30 / 40 / 30 payout rail, milestone proof process, and reviewer thresholds.",
+    content: `
+      <h1>Grant Flow in BERT V2</h1>
+      <p class="lead">This is the most important protocol change in BERT V2. Winning a round no longer triggers a blind full treasury release. Payout now follows a validated milestone rail.</p>
+
+      <h2>Release rail</h2>
+      <table>
+        <thead>
+          <tr><th>Stage</th><th>Release</th><th>Condition</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Initial claim</td><td><strong>30%</strong></td><td>Winning author claims after round settlement</td></tr>
+          <tr><td>Checkpoint one</td><td><strong>40%</strong></td><td>Validators confirm build is actively in progress</td></tr>
+          <tr><td>Final checkpoint</td><td><strong>30%</strong></td><td>Validators confirm project is launched / working</td></tr>
+        </tbody>
+      </table>
+
+      <h2>State progression behind the payouts</h2>
+      <ul>
+        <li><code>WonVoting</code> → initial claim → <code>Funded</code></li>
+        <li>After stage 1 proof approval → <code>InProcess</code></li>
+        <li>After stage 2 proof approval → <code>Completed</code></li>
+      </ul>
+
+      <h2>Milestone proof mechanics</h2>
+      <ul>
+        <li>Author submits proof through <code>submitMilestoneProof(roundId, stage, metadataURI, details)</code>.</li>
+        <li>Reviewers evaluate through <code>reviewMilestoneProof(roundId, stage, approved)</code>.</li>
+        <li>Frontend can read live milestone state through <code>getMilestoneRequest</code>.</li>
+      </ul>
+
+      <h2>Current reviewer thresholds</h2>
+      <ul>
+        <li><strong>Stage 1:</strong> 3 approvals out of 5 reviewers</li>
+        <li><strong>Stage 2:</strong> 2 approvals out of 3 reviewers</li>
+      </ul>
+
+      <h2>Important restrictions</h2>
+      <ul>
+        <li>The idea author cannot review their own proof.</li>
+        <li>Only reviewer role wallets can approve or reject proof.</li>
+        <li>If proof is rejected, the author must wait through cooldown before re-submitting.</li>
+        <li>No milestone UI should appear for non-winning ideas.</li>
+      </ul>
+
+      <h2>Frontend presentation rules</h2>
+      <ul>
+        <li>Round page should present claim of the first <code>30%</code>.</li>
+        <li>Winning idea page should present milestone proof submission and review state.</li>
+        <li>Profile and stats pages should surface locked stake, grants in progress, and payout stage state.</li>
+      </ul>
+
+      <div class="callout danger">
+        <strong>Do not document V2 as “grant released after win”.</strong> That sentence is wrong now. The only immediate release after win is the first <strong>30%</strong>, and even that still requires the author claim path.
+      </div>
+    `,
+  },
+  {
+    slug: "upgrade-safety",
+    group: "Deployment",
+    title: "Upgrade Safety & Storage Notes",
+    summary: "What changed in the V2 contract upgrades, where storage collisions happened, and how they were fixed.",
+    content: `
+      <h1>Upgrade Safety & Storage Notes</h1>
+      <p class="lead">BERT V2 runs on upgradeable proxies. That makes storage layout correctness a protocol-level requirement, not an implementation detail.</p>
+
+      <h2>Why this matters</h2>
+      <ul>
+        <li>Adding fields in the wrong place in a proxy-backed contract can reinterpret old storage and corrupt live behavior.</li>
+        <li>The most dangerous cases are mappings, counters, arrays, and newly inserted state variables before old slots.</li>
+      </ul>
+
+      <h2>Actual V2 issues that had to be fixed</h2>
+      <ul>
+        <li><strong>IdeaRegistryUpgradeable:</strong> new V2 fields were initially inserted before legacy storage. That caused proxy slot reinterpretation, broke <code>totalIdeas()</code>, and made <code>fundingPool()</code> read invalid state.</li>
+        <li><strong>FundingPoolUpgradeable:</strong> new author-stake storage was initially inserted before legacy mappings/arrays, creating a storage collision risk for round balances and distribution history.</li>
+      </ul>
+
+      <h2>How the fix was done</h2>
+      <ul>
+        <li>Restore the original legacy storage order exactly.</li>
+        <li>Append new V2 state variables only at the tail.</li>
+        <li>Reduce storage gap instead of inserting fields in the middle.</li>
+        <li>Use a versioned initializer such as <code>initializeV2(...)</code> for new V2 fields on existing proxies.</li>
+      </ul>
+
+      <h2>IdeaRegistry V2 post-upgrade checks</h2>
+      <ol>
+        <li><code>fundingPool()</code> returns live FundingPool proxy address</li>
+        <li><code>authorMinStake()</code> returns <code>5000e18</code></li>
+        <li><code>totalIdeas()</code> returns correct live count</li>
+        <li><code>getIdea(1)</code> reads historical idea correctly</li>
+      </ol>
+
+      <h2>FundingPool V2 post-upgrade checks</h2>
+      <ol>
+        <li><code>totalPoolBalance()</code> matches expected live pool balance</li>
+        <li><code>protocolReserve()</code> is sane</li>
+        <li><code>getDistributionCount()</code> still reads old distribution history</li>
+        <li><code>authorStakeByIdea()</code> works for newly created V2 ideas</li>
+      </ol>
+
+      <h2>Required upgrade testing discipline</h2>
+      <ul>
+        <li>Keep legacy mock implementations in tests.</li>
+        <li>Run “upgrade from old layout, preserve old state, continue new writes” tests for every storage-changing release.</li>
+        <li>Do not rely only on fresh deployment tests.</li>
+      </ul>
+
+      <div class="callout warning">
+        <strong>Rule:</strong> if a V2 release changes state variables in a proxy-backed contract, treat upgrade safety as a blocker. No docs, frontend, or deployment task is complete until upgrade preservation is tested.
+      </div>
+    `,
+  },
+  {
+    slug: "v2-migration-checklist",
+    group: "Deployment",
+    title: "BERT V2 Migration Checklist",
+    summary: "Step-by-step checklist for upgrading contracts, frontend, subgraph, and docs into a coherent V2 deployment.",
+    content: `
+      <h1>BERT V2 Migration Checklist</h1>
+      <p class="lead">Use this checklist when moving a BERT environment from the older flow into the live BERT V2 mechanics. This page is intentionally operational and should be treated like a release runbook.</p>
+
+      <h2>1. Contract preparation</h2>
+      <ul>
+        <li>Validate storage layout changes for every upgraded proxy-backed contract.</li>
+        <li>Keep legacy mock implementations for upgrade-preservation tests.</li>
+        <li>Run upgrade tests that prove old state survives and new V2 writes still work.</li>
+      </ul>
+
+      <h2>2. Proxy upgrade execution</h2>
+      <ol>
+        <li>Upgrade <code>FundingPoolUpgradeable</code> with storage-safe V2 implementation.</li>
+        <li>Upgrade <code>IdeaRegistryUpgradeable</code> with storage-safe V2 implementation.</li>
+        <li>Run post-upgrade initializer call for IdeaRegistry: <code>initializeV2(fundingPool, 5000e18)</code>.</li>
+        <li>Verify proxy implementation addresses and tx hashes are recorded.</li>
+      </ol>
+
+      <h2>3. Live on-chain verification</h2>
+      <ul>
+        <li><code>IdeaRegistry.fundingPool()</code> matches live FundingPool proxy.</li>
+        <li><code>IdeaRegistry.authorMinStake()</code> returns <code>5000e18</code>.</li>
+        <li><code>IdeaRegistry.totalIdeas()</code> reads historical ideas correctly.</li>
+        <li><code>FundingPool.totalPoolBalance()</code> and <code>getDistributionCount()</code> remain sane.</li>
+      </ul>
+
+      <h2>4. Frontend migration</h2>
+      <ul>
+        <li>Update ABI layer for V2 functions and structs.</li>
+        <li>Add preflight checks for allowance, minimum author stake, grant eligibility, and milestone stages.</li>
+        <li>Update public copy so it never claims “full grant immediately after win”.</li>
+        <li>Pin chain selection and RPC defaults to the correct deployment network.</li>
+      </ul>
+
+      <h2>5. Subgraph migration</h2>
+      <ul>
+        <li>Refresh ABIs in subgraph config.</li>
+        <li>Regenerate types and mappings together.</li>
+        <li>Update start blocks if contract deployments changed.</li>
+        <li>Rebuild and redeploy the Studio subgraph version used by the frontend.</li>
+      </ul>
+
+      <h2>6. Docs migration</h2>
+      <ul>
+        <li>Replace all old grant-flow descriptions with the V2 staged payout rail.</li>
+        <li>Document storage collision lessons and post-upgrade verification checks.</li>
+        <li>Update environment addresses and operational runbooks.</li>
+      </ul>
+
+      <h2>7. Final smoke pass</h2>
+      <ol>
+        <li>Claim faucet BTK / confirm wallet setup</li>
+        <li>Create idea with <code>5000 BTK</code></li>
+        <li>Vote in active round</li>
+        <li>End round when eligible</li>
+        <li>Claim initial <code>30%</code> from winner wallet</li>
+        <li>Submit milestone proof</li>
+        <li>Review proof from reviewer wallet</li>
+      </ol>
+
+      <div class="callout info">
+        <strong>Release discipline:</strong> BERT V2 migration is only complete when contracts, frontend, subgraph, and docs all describe the same mechanics and addresses.
       </div>
     `,
   },
@@ -157,10 +508,10 @@ const history = await fetch(SUBGRAPH_URL, { method: "POST", body: JSON.stringify
     slug: "sepolia-addresses",
     group: "Deployment",
     title: "Sepolia Addresses",
-    summary: "Current deployed proxy addresses for BERT on Sepolia.",
+    summary: "Current BERT V2 proxy addresses and integration endpoints for the live Sepolia stack.",
     content: `
-      <h1>Sepolia Deployment Addresses</h1>
-      <p class="lead">Deployment source: latest successful proxy deployment and faucet deployment on Sepolia (February 16, 2026). <span class="hl-yellow">Treat this page as the canonical environment snapshot.</span></p>
+      <h1>BERT V2 Sepolia Addresses</h1>
+      <p class="lead">This page is the canonical BERT V2 environment snapshot for the current Sepolia deployment used by the frontend and docs.</p>
 
       <h2>Core proxies</h2>
       <table>
@@ -180,103 +531,50 @@ const history = await fetch(SUBGRAPH_URL, { method: "POST", body: JSON.stringify
         </tbody>
       </table>
 
+      <h2>Important live V2 checks</h2>
+      <ul>
+        <li><code>IdeaRegistry.fundingPool()</code> should resolve to <code>0x822e853dB65B288FE01Ca76Ed6e8B4895070F32D</code></li>
+        <li><code>IdeaRegistry.authorMinStake()</code> should resolve to <code>5000000000000000000000</code></li>
+        <li><code>FundingPool.totalPoolBalance()</code> should be read from live RPC, not guessed from subgraph alone</li>
+      </ul>
+
       <h2>Network and endpoints</h2>
       <ul>
         <li>Network: <strong>Sepolia</strong> (chainId <code>11155111</code>)</li>
-        <li>RPC in use: <code>https://sepolia.infura.io/v3/0000000000000000000000000</code></li>
-        <li>Subgraph Studio endpoint: <code>https://api.studio.thegraph.com/query/1742046/bert-sepolia/v0.0.1</code></li>
+        <li>Frontend should use a Sepolia RPC and must not fall back to localhost by accident.</li>
+        <li>Subgraph endpoint should match the currently deployed Studio version used by the frontend env.</li>
       </ul>
 
       <h2>Verification checklist</h2>
       <ol>
-        <li>Confirm wallet network is Sepolia.</li>
-        <li>Confirm frontend <code>.env</code> addresses match this table.</li>
-        <li>Check token decimals in wallet import for BTK.</li>
-        <li>Run smoke flow: faucet claim → create idea → vote → read round data.</li>
+        <li>Wallet network is Sepolia.</li>
+        <li>Frontend <code>.env</code> matches the addresses above.</li>
+        <li>BTK imported in wallet with correct decimals.</li>
+        <li>Smoke flow succeeds: faucet claim → approve → create idea → vote → read round → read profile.</li>
       </ol>
-
-      <div class="callout danger">
-        If you redeploy, update this page immediately and version the change in release notes. <span class="hl-red">Stale addresses will break writes and can route users to wrong contracts.</span>
-      </div>
-    `,
-  },
-  {
-    slug: "business-flows",
-    group: "Protocol",
-    title: "Business Flows",
-    summary: "Detailed proposal-to-grant flow and important status gates.",
-    content: `
-      <h1>Business Flows</h1>
-      <p class="lead">This section explains the main user and protocol flows with the exact status and policy logic that matters in product behavior.</p>
-
-      <h2>Idea lifecycle</h2>
-      <p><code>Pending → Voting → WonVoting/Rejected → Funded → Completed</code></p>
-
-      <h3>1) Create idea</h3>
-      <ul>
-        <li>Author submits title, description, and link.</li>
-        <li>Initial status is <code>Pending</code>.</li>
-      </ul>
-
-      <h3>2) Start round</h3>
-      <ul>
-        <li>Anyone can start a round if pending idea count reaches <code>IDEAS_PER_ROUND</code>.</li>
-        <li>Ideas selected for the round switch to <code>Voting</code>.</li>
-      </ul>
-
-      <h3>3) Vote with BTK stake</h3>
-      <ul>
-        <li>Voter stakes BTK through FundingPool path.</li>
-        <li>System enforces min stake, one vote per round per address, and round time window.</li>
-      </ul>
-
-      <h3>4) End round</h3>
-      <ul>
-        <li>Anyone can call end when time window is over.</li>
-        <li>Highest-vote idea wins.</li>
-        <li>Winner gets <code>WonVoting</code>; others move to <code>Rejected</code>.</li>
-      </ul>
-
-      <h3>5) Reputation/progression effects</h3>
-      <ul>
-        <li>Winner author reputation increases.</li>
-        <li>Losing authors can decrease by policy.</li>
-        <li>Voters on winning idea can increment progression counters.</li>
-      </ul>
-
-      <h3>6) Grant execution and completion</h3>
-      <ul>
-        <li>Grant manager executes distribution from pool under role control.</li>
-        <li>Author marks idea completed once in funded state and implementation is done.</li>
-      </ul>
-
-      <h2>Review and curation flow</h2>
-      <ul>
-        <li>Reviewer role can add review text in allowed status windows.</li>
-        <li>Curator role can mark low quality in configured status windows.</li>
-        <li>Client should block unavailable actions early using status + role checks.</li>
-      </ul>
     `,
   },
   {
     slug: "admin-operations",
     group: "Operations",
     title: "Admin Operations",
-    summary: "Pause controls, setters, upgrade boundaries, and safe runbook steps.",
+    summary: "V2 runbook for setters, pause controls, upgrades, and post-upgrade verification.",
     content: `
-      <h1>Admin Operations</h1>
-      <p class="lead">BERT admin capabilities are powerful and must be treated like governance-level changes with audit trail expectations.</p>
+      <h1>Admin Operations for BERT V2</h1>
+      <p class="lead">Admin control in BERT V2 is more sensitive than before because idea entry stake, milestone payout, and storage-safe upgrades all depend on correct wiring and disciplined operations.</p>
 
-      <h2>Operational priorities</h2>
+      <h2>Highest-priority operator responsibilities</h2>
       <ol>
-        <li>Protect admin keys and role authority.</li>
-        <li>Keep role wiring verifiable and up-to-date.</li>
-        <li>Use pause controls for incident isolation.</li>
-        <li>Apply parameter changes with explicit reason and log.</li>
+        <li>Protect proxy admin / admin signers.</li>
+        <li>Verify role registry wiring before enabling new flows.</li>
+        <li>Keep pause state explicit and documented.</li>
+        <li>Treat every upgrade as a storage and wiring event, not only an implementation swap.</li>
       </ol>
 
-      <h2>Critical setter examples</h2>
+      <h2>Critical V2 setter surface</h2>
       <ul>
+        <li><code>IdeaRegistry.setFundingPool</code></li>
+        <li><code>IdeaRegistry.setAuthorMinStake</code></li>
         <li><code>VotingSystem.setVotingDuration</code></li>
         <li><code>VotingSystem.setMinStake</code></li>
         <li><code>VotingSystem.setIdeaPerRound</code></li>
@@ -285,22 +583,26 @@ const history = await fetch(SUBGRAPH_URL, { method: "POST", body: JSON.stringify
         <li><code>BRTFaucet.setClaimAmount</code> and <code>BRTFaucet.setCooldown</code></li>
       </ul>
 
-      <h2>Incident runbook</h2>
-      <pre><code>1. Pause affected contracts
-2. Identify root cause (role, param, external dependency, or logic)
-3. Patch configuration or execute upgrade through ProxyAdmin owner
-4. Verify state + role wiring + smoke tests
-5. Unpause in controlled order and monitor events</code></pre>
+      <h2>V2 upgrade runbook</h2>
+      <pre><code>1. Confirm ProxyAdmin owner signer
+2. Verify new implementation storage layout
+3. Deploy implementation
+4. Run upgrade or upgradeAndCall
+5. For IdeaRegistry V2, call initializeV2(fundingPool, 5000e18)
+6. Re-check live reads
+7. Run frontend smoke flow
+8. Publish updated addresses and release notes</code></pre>
 
-      <h2>Upgrade safety</h2>
+      <h2>Post-upgrade live checks</h2>
       <ul>
-        <li>Validate storage layout compatibility before any implementation change.</li>
-        <li>Confirm ProxyAdmin owner signer before upgrade call.</li>
-        <li>Record tx hash, implementation address, and post-upgrade checks.</li>
+        <li>Can frontend read totals, ideas, rounds, and profile values?</li>
+        <li>Does create-idea flow pass stake and allowance preflight?</li>
+        <li>Do round pages and winning idea pages expose the right V2 grant actions?</li>
+        <li>Do subgraph pages still align with live RPC state?</li>
       </ul>
 
       <div class="callout warning">
-        Never run high-impact setters and upgrades in one unreviewed batch. Keep operations atomic and traceable.
+        Never batch a proxy upgrade, role rewiring, and unrelated parameter changes into one opaque admin session. Keep admin actions atomic so rollback and audit stay realistic.
       </div>
     `,
   },
@@ -308,281 +610,202 @@ const history = await fetch(SUBGRAPH_URL, { method: "POST", body: JSON.stringify
     slug: "frontend-integration",
     group: "Integration",
     title: "Frontend Integration",
-    summary: "How UI should consume contracts and present robust transaction UX.",
+    summary: "How the BERT V2 frontend should read, preflight, and write against live contracts.",
     content: `
-      <h1>Frontend Integration</h1>
-      <p class="lead">This guide is for dApp engineers integrating BERT contracts through wagmi/viem while keeping UX predictable.</p>
+      <h1>Frontend Integration for BERT V2</h1>
+      <p class="lead">BERT V2 frontend behavior should be deterministic: read current truth from RPC, use subgraph for history, and block invalid writes before the wallet prompt whenever possible.</p>
 
-      <h2>Environment model</h2>
+      <h2>Required environment alignment</h2>
       <ul>
-        <li>Keep one env manifest per network.</li>
-        <li>Never mix localhost and Sepolia addresses.</li>
-        <li>Align wallet network, frontend transport RPC, and contract addresses.</li>
+        <li>Wallet network</li>
+        <li>Wagmi default chain</li>
+        <li>RPC transport URL</li>
+        <li>Frontend contract addresses</li>
+        <li>Subgraph endpoint</li>
       </ul>
 
-      <h2>Recommended read/write pattern</h2>
-      <ol>
-        <li>Read current state via RPC.</li>
-        <li>Run preflight checks client-side (status, role, stake, allowance).</li>
-        <li>Prompt transaction only if preflight passes.</li>
-        <li>Map known errors to friendly UI messages.</li>
-      </ol>
-
-      <h2>Example: write with preflight</h2>
-      <pre><code>const status = await ideaRegistry.read.getStatus([ideaId])
-if (Number(status) !== 1) {
-  throw new Error("Review is available only when idea is in Voting status")
-}
-
-await walletClient.writeContract({
-  address: IDEA_REGISTRY,
-  abi: ideaRegistryAbi,
-  functionName: "addReview",
-  args: [ideaId, comment],
-})</code></pre>
-
-      <h2>Hydration and wallet state</h2>
+      <h2>Critical V2 client preflight rules</h2>
       <ul>
-        <li>Avoid rendering wallet-dependent strings on server path when possible.</li>
-        <li>Use mounted/client guards for address-dependent labels.</li>
-        <li>Keep deterministic initial text to avoid hydration mismatch warnings.</li>
+        <li><strong>Create idea:</strong> check min stake, balance, allowance, FundingPool wiring.</li>
+        <li><strong>Vote:</strong> check round status, min stake, allowance, balance, hasVoted, own-idea restriction.</li>
+        <li><strong>Claim 30%:</strong> check round ended, winner exists, wallet is winner author, grant is claimable.</li>
+        <li><strong>Submit milestone proof:</strong> check wallet is author and the correct previous payout state is complete.</li>
+        <li><strong>Review proof:</strong> check reviewer role, active request, and “not author” constraint.</li>
       </ul>
+
+      <h2>RPC-first / subgraph-second rule</h2>
+      <table>
+        <thead><tr><th>Use case</th><th>Preferred source</th></tr></thead>
+        <tbody>
+          <tr><td>Current eligibility / role / status / allowance</td><td>Direct RPC</td></tr>
+          <tr><td>Lists of ideas, votes, rounds, historical reviews</td><td>Subgraph</td></tr>
+          <tr><td>Write gating</td><td>Direct RPC only</td></tr>
+          <tr><td>Analytics cards</td><td>Subgraph or mixed</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Known V2 frontend responsibilities</h2>
+      <ul>
+        <li>Map common contract errors into readable UX messages.</li>
+        <li>Pin reads to the correct protocol chain when env says Sepolia.</li>
+        <li>Fall back to subgraph for list pages when older or broken direct read paths are unsafe.</li>
+        <li>Present V2 copy accurately: not “full grant on win”, but “30 / 40 / 30 release rail”.</li>
+      </ul>
+
+      <pre><code>// Example: safe chain support check
+const isSupported = chain
+  ? supportedChains.some((supportedChain) => supportedChain.id === chain.id)
+  : false</code></pre>
     `,
   },
   {
     slug: "subgraph",
     group: "Integration",
     title: "The Graph Integration",
-    summary: "Subgraph deployment, usage, and frontend query model.",
+    summary: "How the docs, frontend, and V2 operations should treat subgraph data versus direct on-chain reads.",
     content: `
-      <h1>The Graph Integration</h1>
-      <p class="lead">BERT uses The Graph for indexed history while critical live reads remain available via direct RPC.</p>
+      <h1>The Graph Integration for BERT V2</h1>
+      <p class="lead">The subgraph is essential for scalable lists and history, but it is not the authority for write gating. In BERT V2, eligibility checks must remain on RPC.</p>
 
-      <h2>Current studio deployment</h2>
+      <h2>What the subgraph is best at</h2>
       <ul>
-        <li>Studio subgraph: <a href="https://thegraph.com/studio/subgraph/bert-sepolia" target="_blank" rel="noreferrer">bert-sepolia</a></li>
-        <li>Queries endpoint: <code>https://api.studio.thegraph.com/query/1742046/bert-sepolia/v0.0.1</code></li>
+        <li>Idea lists</li>
+        <li>Vote history</li>
+        <li>Round pages with many historical rows</li>
+        <li>Profile timelines</li>
+        <li>Homepage and protocol analytics widgets</li>
       </ul>
 
-      <h2>Frontend configuration</h2>
-      <pre><code>NEXT_PUBLIC_SUBGRAPH_URL=https://api.studio.thegraph.com/query/1742046/bert-sepolia/v0.0.1</code></pre>
+      <h2>What should stay on direct RPC</h2>
+      <ul>
+        <li><code>authorMinStake()</code></li>
+        <li><code>fundingPool()</code> wiring</li>
+        <li>Allowance and token balance checks</li>
+        <li>Claim eligibility</li>
+        <li>Live milestone request state before write</li>
+      </ul>
 
-      <h2>When to use subgraph vs RPC</h2>
-      <table>
-        <thead><tr><th>Use case</th><th>Preferred source</th></tr></thead>
-        <tbody>
-          <tr><td>Current balances, statuses, role checks</td><td>Direct RPC reads</td></tr>
-          <tr><td>Historical lists, activity timeline, aggregated views</td><td>Subgraph queries</td></tr>
-          <tr><td>Write eligibility prechecks</td><td>RPC (authoritative)</td></tr>
-          <tr><td>Page-level analytics widgets</td><td>Subgraph</td></tr>
-        </tbody>
-      </table>
+      <h2>V2 subgraph deployment discipline</h2>
+      <ul>
+        <li>ABI set must match the upgraded live contracts.</li>
+        <li><code>startBlock</code> values should be updated when deployments move.</li>
+        <li>Generated types and mappings should be regenerated together, not partially.</li>
+      </ul>
 
-      <h2>Deployment commands</h2>
-      <pre><code>npm run codegen:sepolia
-npm run build:sepolia
-npx graph deploy bert-sepolia subgraph.yaml --deploy-key YOUR_DEPLOY_KEY --version-label vX.Y.Z</code></pre>
-
-      <div class="callout info">
-        Keep startBlock values as close as possible to actual contract deployment blocks to reduce indexing lag and noise.
-      </div>
+      <h2>Frontend fallback rule</h2>
+      <p>If a non-critical direct read path is broken or too expensive for large history pages, fall back to subgraph for rendering, but never let the subgraph alone decide whether a write is allowed.</p>
     `,
   },
   {
     slug: "sepolia-user-guide",
     group: "User Guides",
     title: "Sepolia User Guide",
-    summary: "Gas, faucet, wallet setup, and BTK import for end users.",
+    summary: "What users need for gas, BTK setup, approvals, and the full BERT V2 test flow.",
     content: `
-      <h1>Sepolia User Guide</h1>
-      <p class="lead">This guide explains how users start interacting with BERT on Sepolia without confusion around gas and token setup.</p>
+      <h1>Sepolia User Guide for BERT V2</h1>
+      <p class="lead">This guide is for testers and early users interacting with the live BERT V2 deployment on Sepolia.</p>
 
-      <h2>What pays gas?</h2>
-      <p><span class="hl-yellow">Sepolia ETH</span> pays all transaction fees. <span class="hl-red">BTK is not a gas token.</span></p>
-
-      <h2>How to get Sepolia ETH</h2>
-      <ol>
-        <li>Open a Sepolia faucet.</li>
-        <li>Request funds to your wallet address.</li>
-        <li>Wait for confirmation in wallet/explorer.</li>
-        <li>Keep a reserve to avoid interrupted write flows.</li>
-      </ol>
-
-      <h2>How to add BTK in MetaMask</h2>
-      <ol>
-        <li>Switch MetaMask to Sepolia.</li>
-        <li>Import custom token.</li>
-        <li>Paste BTK contract address: <code>0x89F0645551D669aa8813b245266E8c09Bbe0F9c2</code>.</li>
-        <li>Confirm symbol/decimals and save.</li>
-      </ol>
-
-      <h2>Common failures</h2>
+      <h2>Gas token vs protocol token</h2>
       <ul>
-        <li><strong>NetworkError when attempting to fetch resource:</strong> RPC mismatch, blocked CORS path, or wrong active network.</li>
-        <li><strong>No wallet prompt:</strong> preflight check failed before sending transaction.</li>
-        <li><strong>Wrong token amount display:</strong> decimals import mismatch in wallet.</li>
-      </ul>
-    `,
-  },
-  {
-    slug: "code-examples",
-    group: "Integration",
-    title: "Code Examples",
-    summary: "Practical snippets for reads, writes, role checks, and ops.",
-    content: `
-      <h1>Code Examples</h1>
-      <p class="lead">Use these snippets as templates. Validate ABIs and addresses in your repo before copy-pasting into production paths.</p>
-
-      <h2>Read round info (viem)</h2>
-      <pre><code>const round = await publicClient.readContract({
-  address: VOTING_SYSTEM,
-  abi: votingAbi,
-  functionName: "getRoundInfo",
-  args: [1n],
-})
-
-const [id, ideaIds, start, end, active, ended, totalVotes] = round</code></pre>
-
-      <h2>Approve and vote sequence</h2>
-      <pre><code>// 1) approve token spend
-await walletClient.writeContract({
-  address: GOV_TOKEN,
-  abi: erc20Abi,
-  functionName: "approve",
-  args: [FUNDING_POOL, amount],
-})
-
-// 2) cast vote
-await walletClient.writeContract({
-  address: VOTING_SYSTEM,
-  abi: votingAbi,
-  functionName: "vote",
-  args: [roundId, ideaId, amount],
-})</code></pre>
-
-      <h2>Hardhat console role check</h2>
-      <pre><code>const roles = await ethers.getContractAt("RolesRegistryUpgradeable", ROLES)
-const CURATOR_ROLE = await roles.CURATOR_ROLE()
-console.log(await roles.hasRole(CURATOR_ROLE, user))</code></pre>
-
-      <h2>Deployment verification snippet</h2>
-      <pre><code>const code = await ethers.provider.getCode(PROXY_ADDRESS)
-if (code === "0x") throw new Error("Proxy address has no code")
-
-const ok = await roles.hasRole(await roles.VOTING_ROLE(), VOTING_SYSTEM)
-console.log("voting role wired", ok)</code></pre>
-    `,
-  },
-  {
-    slug: "security-ops",
-    group: "Operations",
-    title: "Security & Operations",
-    summary: "Controls, monitoring, incident response, and release hygiene.",
-    content: `
-      <h1>Security & Operations</h1>
-      <p class="lead">Operational security is a process. This section defines what to monitor and what to execute when incidents occur.</p>
-
-      <h2>Minimum controls</h2>
-      <ul>
-        <li>Hardware-backed admin keys or multisig for privileged actions.</li>
-        <li>Explicit role matrix with owners and emergency contacts.</li>
-        <li>Event monitoring for upgrades, role changes, pause toggles, and payout actions.</li>
+        <li><strong>Sepolia ETH</strong> pays gas.</li>
+        <li><strong>BTK</strong> is used for idea entry stake and voting stake.</li>
       </ul>
 
-      <h2>Pre-release gate</h2>
+      <h2>Basic V2 user journey</h2>
       <ol>
-        <li>Contract test suite green.</li>
-        <li>Role wiring verified on target network.</li>
-        <li>Pause states match expected launch config.</li>
-        <li>Smoke flow from non-admin wallet is successful.</li>
+        <li>Get Sepolia ETH for gas.</li>
+        <li>Claim or obtain BTK.</li>
+        <li>Approve BTK when prompted.</li>
+        <li>Create idea with <code>5000 BTK</code> minimum if testing author flow.</li>
+        <li>Vote in active rounds with BTK stake.</li>
+        <li>If your idea wins, claim first <code>30%</code>.</li>
+        <li>Submit milestone proof for the next payout stages.</li>
       </ol>
 
-      <h2>Post-release monitoring</h2>
+      <h2>Common user confusion points</h2>
       <ul>
-        <li>Unexpected admin writes</li>
-        <li>Transaction revert spike by endpoint</li>
-        <li>Subgraph indexing lag and query failures</li>
-        <li>Drift between subgraph projections and RPC reads</li>
-      </ul>
-
-      <h2>Known current roadmap constraints</h2>
-      <ul>
-        <li>External audit planned but not yet complete.</li>
-        <li>Public bug bounty program planned, currently not active.</li>
+        <li><strong>“Why did MetaMask open but tx reverted?”</strong> Usually stake, allowance, or role preconditions were not met.</li>
+        <li><strong>“Why can’t I create an idea?”</strong> Most often because BTK balance or FundingPool allowance is below <code>5000 BTK</code>.</li>
+        <li><strong>“Why didn’t I get the full grant after win?”</strong> Because BERT V2 uses staged milestone payouts, not immediate 100% release.</li>
       </ul>
     `,
   },
   {
     slug: "faq",
     group: "Reference",
-    title: "FAQ",
-    summary: "Short answers to recurring implementation and user questions.",
+    title: "V2 FAQ",
+    summary: "Concise answers to the recurring technical and product questions around BERT V2.",
     content: `
-      <h1>FAQ</h1>
+      <h1>BERT V2 FAQ</h1>
 
-      <h2>Why does a write call show "NetworkError when attempting to fetch resource"?</h2>
-      <p>Usually RPC endpoint mismatch, blocked CORS path, or wallet connected to different chain than frontend transport.</p>
+      <h2>Why does createIdea now require BTK?</h2>
+      <p>BERT V2 adds an author stake requirement to reduce spam and force real commitment before an idea enters the round pipeline.</p>
 
-      <h2>Why can claim work but page data still shows dots or empty values?</h2>
-      <p>One endpoint path may be reachable while another fetch path or indexing source is not. Check both RPC and subgraph configuration.</p>
+      <h2>What is the current minimum for idea creation?</h2>
+      <p>The live V2 configuration is <strong>5000 BTK</strong>.</p>
 
-      <h2>Why does MetaMask show warning about security provider?</h2>
-      <p>Security simulation providers may not classify custom testnet contracts immediately. Confirm contract addresses manually and proceed only on trusted deployments.</p>
+      <h2>Does winning a round still release the full grant immediately?</h2>
+      <p>No. In BERT V2 the release rail is <strong>30% / 40% / 30%</strong>, with validator checkpoints between stages.</p>
 
-      <h2>Can we run multiple rounds simultaneously?</h2>
-      <p>Yes, if contract logic allows and operational policy accepts overlap. Ensure round lifecycle and idea allocation logic remain deterministic.</p>
+      <h2>Who can approve milestone proofs?</h2>
+      <p>Only wallets with reviewer role, and the idea author cannot review their own proof.</p>
 
-      <h2>Do users need BTK to pay for gas?</h2>
-      <p>No. Gas is always paid in the native network coin (Sepolia ETH on Sepolia).</p>
+      <h2>Why can a page show subgraph data even if one contract read path was previously broken?</h2>
+      <p>Because list/history rendering can fall back to subgraph, while authoritative write gating and live checks still depend on RPC.</p>
 
-      <h2>Where should detailed product docs live?</h2>
-      <p>Preferred path is a dedicated docs deployment (e.g. <code>docs.yourdomain.xyz</code>) with versioned release notes and searchable content.</p>
+      <h2>Why are storage-layout docs part of protocol docs?</h2>
+      <p>Because BERT V2 runs behind upgradeable proxies. Storage layout mistakes are protocol failures, not only developer mistakes.</p>
     `,
   },
   {
-    slug: "release-notes",
+    slug: "release-notes-template",
     group: "Reference",
-    title: "Release Notes Template",
-    summary: "Template for documenting protocol and frontend releases.",
+    title: "BERT V2 Release Notes Template",
+    summary: "Template for documenting future V2.x protocol, frontend, and subgraph releases.",
     content: `
-      <h1>Release Notes Template</h1>
-      <p class="lead">Use this template for every release touching contracts, ABI, addresses, or frontend write paths.</p>
+      <h1>BERT V2 Release Notes Template</h1>
+      <p class="lead">Use this template for every V2.x release that touches contracts, addresses, env manifests, subgraph, or frontend write paths.</p>
 
-      <h2>Template</h2>
-      <pre><code># Release X.Y.Z - YYYY-MM-DD
+      <pre><code># BERT V2.x Release - YYYY-MM-DD
 
 ## Scope
 - Contracts:
-- Frontend pages/components:
+- Frontend:
 - Subgraph:
+- Docs:
 
-## Contract changes
-- Changed modules:
+## Changed modules
+- IdeaRegistry:
+- FundingPool:
+- GrantManager:
+- VotingSystem:
+- Other:
+
+## Storage layout impact
+- None / appended fields / reinitializer used / tests updated
+
+## Deployment changes
 - New implementation addresses:
-- Storage layout impact:
+- Proxies touched:
+- Post-upgrade calls:
 
-## Config changes
-- Updated env vars:
-- Updated network manifests:
-
-## Migration steps
-1.
-2.
-3.
+## Frontend changes
+- New ABI functions:
+- New env vars:
+- New preflight checks:
 
 ## Verification
-- Role wiring checks:
-- Pause state checks:
+- Role wiring:
+- Pause state:
+- Direct RPC reads:
+- Subgraph sync:
 - Smoke flows:
 
 ## Rollback plan
 - Trigger conditions:
-- Rollback steps:
-- Owner:
+- Revert strategy:
+- Owner / operator:
 </code></pre>
-
-      <h2>Why this matters</h2>
-      <p>Without structured notes, incident root-cause analysis gets slower and riskier. Keep release notes immutable once published.</p>
     `,
   },
 ];

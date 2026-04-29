@@ -4,10 +4,16 @@
   const docEl = document.getElementById("doc");
   const pagerEl = document.getElementById("pager");
   const searchInput = document.getElementById("searchInput");
+  const themeToggle = document.getElementById("themeToggle");
 
   let activeSlug = docs[0]?.slug || "";
+  let pendingSearchQuery = "";
 
   const bySlug = new Map(docs.map((d) => [d.slug, d]));
+
+  function escapeRegExp(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
 
   function toText(html) {
     const div = document.createElement("div");
@@ -56,7 +62,7 @@
         const text = `${doc.title} ${doc.summary} ${toText(doc.content)}`.toLowerCase();
         return {
           doc,
-          score: (text.match(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) || []).length,
+          score: (text.match(new RegExp(escapeRegExp(q), "g")) || []).length,
           matched: text.includes(q),
         };
       })
@@ -83,6 +89,65 @@
     `;
   }
 
+  function highlightAndScrollToMatch(query) {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return;
+    }
+
+    const walker = document.createTreeWalker(
+      docEl,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode(node) {
+          const parent = node.parentElement;
+          if (!parent) {
+            return NodeFilter.FILTER_REJECT;
+          }
+
+          if (["SCRIPT", "STYLE", "CODE", "PRE", "MARK"].includes(parent.tagName)) {
+            return NodeFilter.FILTER_REJECT;
+          }
+
+          if (!node.textContent || !node.textContent.trim()) {
+            return NodeFilter.FILTER_REJECT;
+          }
+
+          return NodeFilter.FILTER_ACCEPT;
+        },
+      }
+    );
+
+    let currentNode = walker.nextNode();
+
+    while (currentNode) {
+      const text = currentNode.textContent || "";
+      const lowerText = text.toLowerCase();
+      const matchIndex = lowerText.indexOf(normalizedQuery);
+
+      if (matchIndex !== -1) {
+        const range = document.createRange();
+        range.setStart(currentNode, matchIndex);
+        range.setEnd(currentNode, matchIndex + normalizedQuery.length);
+
+        const mark = document.createElement("mark");
+        mark.className = "search-hit";
+        range.surroundContents(mark);
+
+        requestAnimationFrame(() => {
+          mark.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+            inline: "nearest",
+          });
+        });
+        return;
+      }
+
+      currentNode = walker.nextNode();
+    }
+  }
+
   function renderDoc(doc) {
     if (!doc) {
       docEl.innerHTML = "<h1>Not found</h1><p class='lead'>The selected page does not exist.</p>";
@@ -91,6 +156,11 @@
     }
     docEl.innerHTML = doc.content;
     renderPager(doc.slug);
+    if (pendingSearchQuery) {
+      const queryToReveal = pendingSearchQuery;
+      pendingSearchQuery = "";
+      highlightAndScrollToMatch(queryToReveal);
+    }
   }
 
   function renderPager(currentSlug) {
@@ -130,8 +200,21 @@
         return text.includes(query.trim().toLowerCase());
       }));
       docEl.querySelectorAll("a[data-slug]").forEach((a) => {
-        a.addEventListener("click", () => {
+        a.addEventListener("click", (event) => {
+          event.preventDefault();
+          pendingSearchQuery = query.trim();
           searchInput.value = "";
+          const targetSlug = a.getAttribute("data-slug");
+          if (!targetSlug) {
+            updateFromState();
+            return;
+          }
+          if (location.hash.replace(/^#/, "") === targetSlug) {
+            activeSlug = targetSlug;
+            updateFromState();
+            return;
+          }
+          location.hash = targetSlug;
         });
       });
       return;
@@ -151,6 +234,27 @@
       renderDoc(first);
       renderNav(docs);
     }
+  }
+
+  const storedTheme = localStorage.getItem("bert-docs-theme");
+  const initialTheme = storedTheme === "light" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", initialTheme);
+  if (themeToggle) {
+    const nextThemeLabel = initialTheme === "light" ? "dark" : "light";
+    themeToggle.setAttribute("aria-label", `Switch to ${nextThemeLabel} theme`);
+    themeToggle.setAttribute("title", `Switch to ${nextThemeLabel} theme`);
+  }
+
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+      const next = current === "light" ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("bert-docs-theme", next);
+      const nextThemeLabel = next === "light" ? "dark" : "light";
+      themeToggle.setAttribute("aria-label", `Switch to ${nextThemeLabel} theme`);
+      themeToggle.setAttribute("title", `Switch to ${nextThemeLabel} theme`);
+    });
   }
 
   searchInput.addEventListener("input", updateFromState);
